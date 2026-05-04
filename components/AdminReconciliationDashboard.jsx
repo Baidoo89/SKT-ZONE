@@ -533,9 +533,64 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
 
   const requireAuthView = sessionAuthEnabled && !authState.authenticated && !adminKey?.trim();
 
+  const ledgerHasPrevious = dashboard.ledgerOffset > 0;
+  const debtHasPrevious = dashboard.debtOffset > 0;
+  const auditHasPrevious = dashboard.auditHistoryOffset > 0;
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 relative">
       <div className="relative">
+        {requireAuthView ? (
+          <div className="fixed inset-x-0 top-4 z-50 flex justify-center px-4 sm:top-6">
+            <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white/95 p-4 shadow-2xl shadow-slate-300/60 backdrop-blur-sm sm:p-6">
+              <div className="text-center">
+                <div className="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-indigo-700">
+                  <ShieldCheck className="h-4 w-4" />
+                  Admin Login
+                </div>
+                <h2 className="mt-3 text-xl font-semibold text-slate-900">Sign in to view data</h2>
+                <p className="mt-1 text-sm text-slate-600">The dashboard stays blurred until admin authentication succeeds.</p>
+              </div>
+
+              <form className="mt-4 space-y-3" onSubmit={handleLogin}>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="overlayLoginUsername">
+                    Admin Username
+                  </label>
+                  <input
+                    id="overlayLoginUsername"
+                    type="text"
+                    value={loginForm.username}
+                    onChange={(event) => setLoginForm((current) => ({ ...current, username: event.target.value }))}
+                    placeholder="admin"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+                  />
+                </div>
+                <div>
+                  <label className="mb-2 block text-sm font-medium text-slate-700" htmlFor="overlayLoginPassword">
+                    Password
+                  </label>
+                  <input
+                    id="overlayLoginPassword"
+                    type="password"
+                    value={loginForm.password}
+                    onChange={(event) => setLoginForm((current) => ({ ...current, password: event.target.value }))}
+                    placeholder="••••••••"
+                    className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-100"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={loginPending}
+                  className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {loginPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                  Sign In
+                </button>
+              </form>
+            </div>
+          </div>
+        ) : null}
         <div className={requireAuthView ? "filter blur-sm pointer-events-none select-none" : ""}>
           <div className="mx-auto min-w-0 max-w-7xl px-2 py-2 sm:px-6 sm:py-6 lg:px-8">
             <div className="min-w-0 space-y-3 sm:space-y-6">
@@ -893,14 +948,24 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
                 <span className="text-xs text-slate-500">
                   Showing {ledgerRows.length > 0 ? dashboard.ledgerOffset + 1 : 0}–{dashboard.ledgerOffset + ledgerRows.length} entries
                 </span>
-                <button
-                  type="button"
-                  onClick={() => loadSnapshot({ paginate: { ledgerOffset: dashboard.ledgerOffset + dashboard.ledgerLimit, ledgerLimit: dashboard.ledgerLimit } })}
-                  disabled={pendingAction !== null || ledgerRows.length < dashboard.ledgerLimit}
-                  className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Load More
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => loadSnapshot({ paginate: { ledgerOffset: Math.max(0, dashboard.ledgerOffset - dashboard.ledgerLimit), ledgerLimit: dashboard.ledgerLimit } })}
+                    disabled={pendingAction !== null || !ledgerHasPrevious}
+                    className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => loadSnapshot({ paginate: { ledgerOffset: dashboard.ledgerOffset + dashboard.ledgerLimit, ledgerLimit: dashboard.ledgerLimit } })}
+                    disabled={pendingAction !== null || ledgerRows.length < dashboard.ledgerLimit}
+                    className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -1138,14 +1203,24 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
                         <span className="text-xs text-slate-500">
                           Showing {dashboard.debtors.length > 0 ? dashboard.debtOffset + 1 : 0}–{dashboard.debtOffset + dashboard.debtors.length} debtors
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => loadSnapshot({ paginate: { debtOffset: dashboard.debtOffset + dashboard.debtLimit, debtLimit: dashboard.debtLimit } })}
-                          disabled={pendingAction !== null || dashboard.debtors.length < dashboard.debtLimit}
-                          className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          Load More
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => loadSnapshot({ paginate: { debtOffset: Math.max(0, dashboard.debtOffset - dashboard.debtLimit), debtLimit: dashboard.debtLimit } })}
+                            disabled={pendingAction !== null || !debtHasPrevious}
+                            className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            Previous
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => loadSnapshot({ paginate: { debtOffset: dashboard.debtOffset + dashboard.debtLimit, debtLimit: dashboard.debtLimit } })}
+                            disabled={pendingAction !== null || dashboard.debtors.length < dashboard.debtLimit}
+                            className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                          >
+                            Next
+                          </button>
+                        </div>
                       </div>
                     </>
                   )}
@@ -1243,14 +1318,24 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
                 <span className="text-xs text-slate-500">
                   Showing {auditHistory.length > 0 ? dashboard.auditHistoryOffset + 1 : 0}–{dashboard.auditHistoryOffset + auditHistory.length} entries
                 </span>
-                <button
-                  type="button"
-                  onClick={() => loadSnapshot({ paginate: { auditHistoryOffset: dashboard.auditHistoryOffset + dashboard.auditHistoryLimit, auditHistoryLimit: dashboard.auditHistoryLimit } })}
-                  disabled={pendingAction !== null || auditHistory.length < dashboard.auditHistoryLimit}
-                  className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  Load More
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => loadSnapshot({ paginate: { auditHistoryOffset: Math.max(0, dashboard.auditHistoryOffset - dashboard.auditHistoryLimit), auditHistoryLimit: dashboard.auditHistoryLimit } })}
+                    disabled={pendingAction !== null || !auditHasPrevious}
+                    className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Previous
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => loadSnapshot({ paginate: { auditHistoryOffset: dashboard.auditHistoryOffset + dashboard.auditHistoryLimit, auditHistoryLimit: dashboard.auditHistoryLimit } })}
+                    disabled={pendingAction !== null || auditHistory.length < dashboard.auditHistoryLimit}
+                    className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Next
+                  </button>
+                </div>
               </div>
             </div>
 
