@@ -13,7 +13,7 @@
 ```bash
 npm run dev
 # Dashboard available at: http://localhost:3000
-# Login: admin / TechDalt@2026
+# Login: use credentials from your local .env.local
 ```
 
 ### Run Production Build
@@ -27,7 +27,7 @@ npm start
 ## ✅ What's Included
 
 ### Complete & Tested
-- ✅ **Live Paystack Feed** - Connected and configured with `pk_live_3ea68a5eed29e7de67f3670a74c119beb4f4aff8`
+- ✅ **Live Paystack Feed** - Connected and configured with your local Paystack secret key
 - ✅ **Session Authentication** - Login/logout working flawlessly
 - ✅ **Top-up Workflow** - Create transactions with full audit trail
 - ✅ **End-of-Day Reconciliation** - Automated daily snapshots
@@ -51,8 +51,8 @@ npm start
 ## 🔑 Access Information
 
 **Login Credentials**
-- Username: `admin`
-- Password: `TechDalt@2026`
+- Username: stored locally
+- Password: stored locally
 
 **Database**
 - PostgreSQL (Neon) - Ready
@@ -60,7 +60,7 @@ npm start
 - SSL/TLS encrypted connection
 
 **Paystack API**
-- Live Secret Key: `pk_live_3ea68a5eed29e7de67f3670a74c119beb4f4aff8`
+- Live Secret Key: stored locally as `PAYSTACK_SECRET_KEY`
 - Endpoint: `GET /api/paystack/transactions`
 - Status: Connected (ready for account activation)
 
@@ -149,7 +149,7 @@ npm start
 ```bash
 curl -X POST http://localhost:3000/api/reconciliation \
   -H "Content-Type: application/json" \
-  -H "X-Admin-Key: TechDalt_ActionKey_VTU_2026_BackupAuth" \
+  -H "X-Admin-Key: <your_admin_action_key>" \
   -d '{
     "action": "topup",
     "userRef": "0244555666",
@@ -162,7 +162,7 @@ curl -X POST http://localhost:3000/api/reconciliation \
 ### Example 2: Run Reconciliation
 ```bash
 curl -X POST http://localhost:3000/api/reconciliation \
-  -H "X-Admin-Key: TechDalt_ActionKey_VTU_2026_BackupAuth" \
+  -H "X-Admin-Key: <your_admin_action_key>" \
   -d '{"action": "reconcile"}'
 ```
 **Result**: Audit record created with daily snapshot ✅

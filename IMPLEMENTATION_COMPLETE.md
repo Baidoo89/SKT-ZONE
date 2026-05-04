@@ -64,7 +64,7 @@ A fintech-grade Admin Reconciliation Dashboard for VTU (Virtual Top-Up) operatio
 - ✅ Response normalization: ID, reference, amount (÷100), currency, status, customer
 - ✅ Query parameters: `perPage` (1-20, default 8), `page`
 - ✅ Graceful error handling: Shows "Invalid key" message when auth fails
-- ✅ Live key configured: `PAYSTACK_SECRET_KEY=pk_live_3ea68a5eed29e7de67f3670a74c119beb4f4aff8`
+- ✅ Live key configured locally through `PAYSTACK_SECRET_KEY`
 
 ### Error Handling
 - ✅ Hydration-safe client components
@@ -85,18 +85,18 @@ A fintech-grade Admin Reconciliation Dashboard for VTU (Virtual Top-Up) operatio
 
 ### Environment Variables (.env.local)
 ```
-DATABASE_URL=postgresql://neondb_owner:npg_VC7mDBEz9cho@ep-red-wave-an9zfk04.c-6.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=TechDalt@2026
-ADMIN_SESSION_SECRET=TechDalt_SecureSession_Key_2026_12345_SuperSecure_VTU_Reconciliation
-ADMIN_ACTION_KEY=TechDalt_ActionKey_VTU_2026_BackupAuth
-PAYSTACK_SECRET_KEY=pk_live_3ea68a5eed29e7de67f3670a74c119beb4f4aff8
+DATABASE_URL=<your_neon_postgres_connection_string>
+ADMIN_USERNAME=<admin_username>
+ADMIN_PASSWORD=<strong_admin_password>
+ADMIN_SESSION_SECRET=<long_random_session_secret>
+ADMIN_ACTION_KEY=<optional_admin_action_key>
+PAYSTACK_SECRET_KEY=<sk_test_or_sk_live_secret_key>
 ```
 
 ### Credentials
 - **Admin Username**: `admin`
-- **Admin Password**: `TechDalt@2026`
-- **Action-Key**: `TechDalt_ActionKey_VTU_2026_BackupAuth` (fallback)
+- **Admin Password**: stored only in your local `.env.local`
+- **Action-Key**: stored only in your local `.env.local` (fallback)
 
 ### Database
 - **Host**: Neon PostgreSQL (AWS us-east-1)
