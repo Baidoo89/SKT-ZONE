@@ -1,0 +1,26 @@
+{
+  "name": "transactions",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "check-db": "node db-check.mjs",
+    "apply-schema": "node db-bootstrap.mjs",
+    "db-report": "node db-report.mjs",
+    "db-bulk": "node db-bulk.mjs"
+  },
+  "dependencies": {
+    "@tailwindcss/postcss": "^4.1.18",
+    "autoprefixer": "^10.5.0",
+    "lucide-react": "^0.539.0",
+    "next": "^16.2.4",
+    "pg": "^8.13.1",
+    "postcss": "^8.5.13",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "tailwindcss": "^4.2.4"
+  }
+}

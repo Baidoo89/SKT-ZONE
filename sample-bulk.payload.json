@@ -1,0 +1,46 @@
+{
+  "ledgerRows": [
+    {
+      "entry_time": "2026-05-03T08:12:00Z",
+      "user_ref": "TX-1042",
+      "source": "Paystack",
+      "amount": 120000,
+      "processed_by": "Ama",
+      "momo_ref": "PSK-1042-0812"
+    },
+    {
+      "entry_time": "2026-05-03T09:05:00Z",
+      "user_ref": "TX-2091",
+      "source": "Manual Admin",
+      "amount": 45000,
+      "processed_by": "Kojo",
+      "momo_ref": "MAN-2091-0905"
+    }
+  ],
+  "debtRows": [
+    {
+      "user_ref": "UT-2041",
+      "display_name": "M. Nartey",
+      "debt_amount": 184000,
+      "status": "open",
+      "priority_rank": 1
+    },
+    {
+      "user_ref": "UT-3177",
+      "display_name": "A. Boateng",
+      "debt_amount": 126500,
+      "status": "open",
+      "priority_rank": 2
+    }
+  ],
+  "auditRows": [
+    {
+      "audit_date": "2026-05-03",
+      "total_cash_in": 165000,
+      "paystack_sync": 97.4,
+      "active_debt_board": 2,
+      "match_status": "MATCH",
+      "notes": "Initial bulk reconciliation load"
+    }
+  ]
+}
