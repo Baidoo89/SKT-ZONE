@@ -218,7 +218,8 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
     }
 
     try {
-      const response = await fetch("/api/paystack/transactions?perPage=8", {
+      // Request a larger page so the table can show more recent transactions
+      const response = await fetch("/api/paystack/transactions?perPage=50", {
         method: "GET",
         cache: "no-store",
       });

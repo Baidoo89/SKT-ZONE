@@ -65,14 +65,14 @@ async function buildSnapshot(pool) {
       `select id, entry_time, user_ref, source, amount, processed_by, momo_ref
        from public.reconciliation_ledger
        order by entry_time desc, created_at desc
-       limit 25`
+       limit 200`
     ),
     pool.query(
       `select id, user_ref, display_name, debt_amount, status, priority_rank, created_at
        from public.debit_board
        where status in ('open', 'partial')
        order by debt_amount desc, priority_rank desc, created_at asc
-       limit 50`
+       limit 500`
     ),
     pool.query(
       `select audit_date, total_cash_in, paystack_sync, active_debt_board, match_status, notes, created_at
@@ -84,7 +84,7 @@ async function buildSnapshot(pool) {
       `select id, audit_date, total_cash_in, paystack_sync, active_debt_board, match_status, notes, created_at
        from public.reconciliation_audits
        order by created_at desc
-       limit 8`
+       limit 50`
     ),
     pool.query(
       `select

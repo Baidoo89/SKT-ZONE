@@ -56,8 +56,9 @@ export async function GET(request) {
   }
 
   const url = new URL("/transaction", baseUrl);
-  const perPage = Number.parseInt(request.nextUrl.searchParams.get("perPage") ?? "8", 10);
-  url.searchParams.set("perPage", String(Number.isFinite(perPage) && perPage > 0 ? Math.min(perPage, 20) : 8));
+  const perPage = Number.parseInt(request.nextUrl.searchParams.get("perPage") ?? "20", 10);
+  // Allow larger page sizes but cap to a conservative limit to avoid heavy responses
+  url.searchParams.set("perPage", String(Number.isFinite(perPage) && perPage > 0 ? Math.min(perPage, 100) : 20));
   url.searchParams.set("page", request.nextUrl.searchParams.get("page") ?? "1");
 
   try {
