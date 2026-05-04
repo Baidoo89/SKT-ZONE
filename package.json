@@ -9,6 +9,7 @@
     "start": "next start",
     "check-db": "node db-check.mjs",
     "apply-schema": "node db-bootstrap.mjs",
+    "reset-db": "node db-reset.mjs",
     "db-report": "node db-report.mjs",
     "db-bulk": "node db-bulk.mjs"
   },
