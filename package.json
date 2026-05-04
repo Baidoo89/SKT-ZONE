@@ -10,6 +10,7 @@
     "check-db": "node db-check.mjs",
     "apply-schema": "node db-bootstrap.mjs",
     "reset-db": "node db-reset.mjs",
+    "fresh-start-db": "node db-fresh-start.mjs",
     "db-report": "node db-report.mjs",
     "db-bulk": "node db-bulk.mjs"
   },
