@@ -162,8 +162,18 @@ async function buildSnapshot(pool) {
   };
 }
 
-export async function GET() {
+export async function GET(request) {
   const pool = getPool();
+
+  const sessionAuthEnabled = isSessionAuthConfigured();
+  const requireAuth = sessionAuthEnabled || Boolean(process.env.ADMIN_ACTION_KEY);
+
+  if (requireAuth) {
+    const authError = authorizeActionRequest(request);
+    if (authError) {
+      return jsonError("Login required to view dashboard.", 401);
+    }
+  }
 
   try {
     const snapshot = await readSnapshotWithRetry(pool);

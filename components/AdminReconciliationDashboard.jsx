@@ -185,9 +185,15 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
     }
 
     try {
+      const headers = {};
+      if (adminKey?.trim()) {
+        headers["X-Admin-Key"] = adminKey.trim();
+      }
+
       const response = await fetch("/api/reconciliation", {
         method: "GET",
         cache: "no-store",
+        headers,
       });
       
       if (!response.ok) {
@@ -210,7 +216,7 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [adminKey]);
 
   const loadPaystackFeed = useCallback(async ({ silent = false, attempt = 0 } = {}) => {
     if (!silent) {
@@ -253,8 +259,18 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
   }, []);
 
   useEffect(() => {
+    // Only fetch snapshot after auth state is known. If session auth is enabled, require authenticated or adminKey;
+    // if no auth configured, allow public fetch.
+    if (authState.loading) return;
+
+    const needSession = authState.sessionAuthEnabled;
+    if (needSession && !authState.authenticated && !adminKey) {
+      // do not fetch until logged in or adminKey provided
+      return;
+    }
+
     void loadSnapshot();
-  }, [loadSnapshot]);
+  }, [authState.loading, authState.authenticated, authState.sessionAuthEnabled, adminKey, loadSnapshot]);
 
   useEffect(() => {
     void loadSession();
