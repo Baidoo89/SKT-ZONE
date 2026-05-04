@@ -122,6 +122,8 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
     loading: true,
     note: "",
     fetchedAt: null,
+    page: 1,
+    perPage: 50,
   });
   const [loading, setLoading] = useState(true);
   const [pendingAction, setPendingAction] = useState(null);
@@ -244,14 +246,15 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
     }
   }, [adminKey]);
 
-  const loadPaystackFeed = useCallback(async ({ silent = false, attempt = 0 } = {}) => {
+  const loadPaystackFeed = useCallback(async ({ silent = false, attempt = 0, page = 1 } = {}) => {
     if (!silent) {
       setPaystackFeed((current) => ({ ...current, loading: true }));
     }
 
     try {
       // Request a larger page so the table can show more recent transactions
-      const response = await fetch("/api/paystack/transactions?perPage=50", {
+      const perPage = 50;
+      const response = await fetch(`/api/paystack/transactions?perPage=${perPage}&page=${page}`, {
         method: "GET",
         cache: "no-store",
       });
@@ -267,11 +270,13 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
         loading: false,
         note: String(payload.note ?? ""),
         fetchedAt: payload.fetchedAt ?? new Date().toISOString(),
+        page,
+        perPage,
       });
     } catch {
       if (attempt < 1) {
         window.setTimeout(() => {
-          void loadPaystackFeed({ silent: true, attempt: attempt + 1 });
+          void loadPaystackFeed({ silent: true, attempt: attempt + 1, page });
         }, 400);
         return;
       }
@@ -527,6 +532,8 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
   const matchProgress = latestAudit ? 100 : 0;
   const ledgerRows = dashboard.ledgerRows;
   const paystackTransactions = paystackFeed.transactions;
+  const paystackHasPrevious = (paystackFeed.page ?? 1) > 1;
+  const paystackHasNext = paystackTransactions.length >= (paystackFeed.perPage ?? 50);
   const isBootstrapping = loading || authState.loading;
   const displayError = isBootstrapping ? "" : error;
   const displayNotice = isBootstrapping ? "" : notice;
@@ -879,6 +886,30 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
                     )}
                   </tbody>
                 </table>
+              </div>
+            </div>
+
+            <div className="mt-4 flex items-center justify-between">
+              <span className="text-xs text-slate-500">
+                Page {paystackFeed.page ?? 1} • Showing {paystackTransactions.length} transaction{paystackTransactions.length === 1 ? "" : "s"}
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => loadPaystackFeed({ page: Math.max(1, (paystackFeed.page ?? 1) - 1) })}
+                  disabled={paystackFeed.loading || !paystackHasPrevious}
+                  className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  onClick={() => loadPaystackFeed({ page: (paystackFeed.page ?? 1) + 1 })}
+                  disabled={paystackFeed.loading || !paystackHasNext}
+                  className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Next
+                </button>
               </div>
             </div>
           </section>
