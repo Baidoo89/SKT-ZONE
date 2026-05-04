@@ -87,11 +87,22 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
   });
   const [loginForm, setLoginForm] = useState({ username: "", password: "" });
   const [loginPending, setLoginPending] = useState(false);
+  const [pagination, setPagination] = useState({
+    ledgerOffset: 0,
+    debtOffset: 0,
+    auditHistoryOffset: 0,
+  });
   const [dashboard, setDashboard] = useState({
     ledgerRows: [],
+    ledgerOffset: 0,
+    ledgerLimit: 20,
     debtors: [],
+    debtOffset: 0,
+    debtLimit: 20,
     latestAudit: null,
     auditHistory: [],
+    auditHistoryOffset: 0,
+    auditHistoryLimit: 10,
     totals: {
       cashInToday: 0,
       paystackSync: 0,
@@ -179,7 +190,7 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
     window.localStorage.removeItem(ADMIN_KEY_STORAGE_KEY);
   }, [adminKey]);
 
-  const loadSnapshot = useCallback(async ({ silent = false, attempt = 0 } = {}) => {
+  const loadSnapshot = useCallback(async ({ silent = false, attempt = 0, paginate = {} } = {}) => {
     if (!silent) {
       setLoading(true);
     }
@@ -190,7 +201,22 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
         headers["X-Admin-Key"] = adminKey.trim();
       }
 
-      const response = await fetch("/api/reconciliation", {
+      // Build query params with pagination offsets
+      const params = new URLSearchParams();
+      if (paginate.ledgerOffset !== undefined) {
+        params.set("ledgerOffset", paginate.ledgerOffset);
+        params.set("ledgerLimit", paginate.ledgerLimit || 20);
+      }
+      if (paginate.debtOffset !== undefined) {
+        params.set("debtOffset", paginate.debtOffset);
+        params.set("debtLimit", paginate.debtLimit || 20);
+      }
+      if (paginate.auditHistoryOffset !== undefined) {
+        params.set("auditHistoryOffset", paginate.auditHistoryOffset);
+        params.set("auditHistoryLimit", paginate.auditHistoryLimit || 10);
+      }
+
+      const response = await fetch(`/api/reconciliation${params.toString() ? "?" + params.toString() : ""}`, {
         method: "GET",
         cache: "no-store",
         headers,
@@ -207,7 +233,7 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
     } catch (fetchError) {
       if (attempt < 2) {
         window.setTimeout(() => {
-          void loadSnapshot({ silent: true, attempt: attempt + 1 });
+          void loadSnapshot({ silent: true, attempt: attempt + 1, paginate });
         }, 500);
         return;
       }
@@ -862,6 +888,20 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
                   </table>
                 </div>
               </div>
+
+              <div className="mt-4 flex items-center justify-between">
+                <span className="text-xs text-slate-500">
+                  Showing {ledgerRows.length > 0 ? dashboard.ledgerOffset + 1 : 0}–{dashboard.ledgerOffset + ledgerRows.length} entries
+                </span>
+                <button
+                  type="button"
+                  onClick={() => loadSnapshot({ paginate: { ledgerOffset: dashboard.ledgerOffset + dashboard.ledgerLimit, ledgerLimit: dashboard.ledgerLimit } })}
+                  disabled={pendingAction !== null || ledgerRows.length < dashboard.ledgerLimit}
+                  className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Load More
+                </button>
+              </div>
             </div>
 
             <div className="min-w-0 space-y-6">
@@ -1024,73 +1064,90 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
                       No open debtors are currently listed.
                     </div>
                   ) : (
-                    dashboard.debtors.map((debtor) => (
-                      <div
-                        key={debtor.id}
-                        className="rounded-3xl border border-slate-200 p-4 transition hover:border-rose-200 hover:bg-rose-50/40"
-                      >
-                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                          <div>
-                            <div className="font-semibold text-slate-900">{debtor.name}</div>
-                            <div className="mt-1 text-sm text-slate-500">{debtor.user}</div>
-                          </div>
-                          <div className="text-left sm:text-right">
-                            <div className="text-sm font-semibold text-rose-600">{formatCurrency(debtor.debt)}</div>
-                            <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-2">
-                              <button
-                                type="button"
-                                onClick={() => handleClearDebt(debtor.user)}
-                                disabled={pendingAction !== null || !actionReady}
-                                className="inline-flex items-center justify-center gap-1 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-70"
-                              >
-                                {pendingAction === "clearDebt" ? (
-                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                ) : (
-                                  <ArrowUpRight className="h-3.5 w-3.5" />
-                                )}
-                                Clear Debt
-                              </button>
+                    <>
+                      <div className="space-y-4">
+                        {dashboard.debtors.map((debtor) => (
+                          <div
+                            key={debtor.id}
+                            className="rounded-3xl border border-slate-200 p-4 transition hover:border-rose-200 hover:bg-rose-50/40"
+                          >
+                            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                              <div>
+                                <div className="font-semibold text-slate-900">{debtor.name}</div>
+                                <div className="mt-1 text-sm text-slate-500">{debtor.user}</div>
+                              </div>
+                              <div className="text-left sm:text-right">
+                                <div className="text-sm font-semibold text-rose-600">{formatCurrency(debtor.debt)}</div>
+                                <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleClearDebt(debtor.user)}
+                                    disabled={pendingAction !== null || !actionReady}
+                                    className="inline-flex items-center justify-center gap-1 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-70"
+                                  >
+                                    {pendingAction === "clearDebt" ? (
+                                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    ) : (
+                                      <ArrowUpRight className="h-3.5 w-3.5" />
+                                    )}
+                                    Clear Debt
+                                  </button>
 
-                              <button
-                                type="button"
-                                onClick={() => handleSuggestMatches(debtor.user, debtor.id, debtor.debt)}
-                                disabled={pendingAction !== null}
-                                className="inline-flex items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70"
-                              >
-                                Suggest Matches
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                        {suggestions[debtor.id] ? (
-                          <div className="mt-3 rounded-2xl border border-slate-100 bg-white p-3 text-sm">
-                            {suggestions[debtor.id].loading ? (
-                              <div className="text-slate-500">Searching for matches...</div>
-                            ) : suggestions[debtor.id].matches.length ? (
-                              suggestions[debtor.id].matches.map((m) => (
-                                <div key={m.id} className="flex flex-col gap-3 border-b border-slate-100 py-2 sm:flex-row sm:items-center sm:justify-between">
-                                  <div>
-                                    <div className="font-medium text-slate-900">{m.momoRef || m.user}</div>
-                                    <div className="text-xs text-slate-500">{formatCurrency(m.amount)} • {m.user}</div>
-                                  </div>
-                                  <div className="text-right">
-                                    <button
-                                      type="button"
-                                      onClick={() => handleClearDebt(debtor.user, m.amount, m.momoRef)}
-                                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white sm:w-auto"
-                                    >
-                                      Apply Match
-                                    </button>
-                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSuggestMatches(debtor.user, debtor.id, debtor.debt)}
+                                    disabled={pendingAction !== null}
+                                    className="inline-flex items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70"
+                                  >
+                                    Suggest Matches
+                                  </button>
                                 </div>
-                              ))
-                            ) : (
-                              <div className="text-slate-500">No candidate matches found.</div>
-                            )}
+                              </div>
+                            </div>
+                            {suggestions[debtor.id] ? (
+                              <div className="mt-3 rounded-2xl border border-slate-100 bg-white p-3 text-sm">
+                                {suggestions[debtor.id].loading ? (
+                                  <div className="text-slate-500">Searching for matches...</div>
+                                ) : suggestions[debtor.id].matches.length ? (
+                                  suggestions[debtor.id].matches.map((m) => (
+                                    <div key={m.id} className="flex flex-col gap-3 border-b border-slate-100 py-2 sm:flex-row sm:items-center sm:justify-between">
+                                      <div>
+                                        <div className="font-medium text-slate-900">{m.momoRef || m.user}</div>
+                                        <div className="text-xs text-slate-500">{formatCurrency(m.amount)} • {m.user}</div>
+                                      </div>
+                                      <div className="text-right">
+                                        <button
+                                          type="button"
+                                          onClick={() => handleClearDebt(debtor.user, m.amount, m.momoRef)}
+                                          className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white sm:w-auto"
+                                        >
+                                          Apply Match
+                                        </button>
+                                      </div>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <div className="text-slate-500">No candidate matches found.</div>
+                                )}
+                              </div>
+                            ) : null}
                           </div>
-                        ) : null}
+                        ))}
                       </div>
-                    ))
+                      <div className="mt-4 flex items-center justify-between">
+                        <span className="text-xs text-slate-500">
+                          Showing {dashboard.debtors.length > 0 ? dashboard.debtOffset + 1 : 0}–{dashboard.debtOffset + dashboard.debtors.length} debtors
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => loadSnapshot({ paginate: { debtOffset: dashboard.debtOffset + dashboard.debtLimit, debtLimit: dashboard.debtLimit } })}
+                          disabled={pendingAction !== null || dashboard.debtors.length < dashboard.debtLimit}
+                          className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          Load More
+                        </button>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
@@ -1181,6 +1238,19 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
                     )}
                   </tbody>
                 </table>
+              </div>
+              <div className="border-t border-slate-200 bg-slate-50 px-4 py-3 flex items-center justify-between">
+                <span className="text-xs text-slate-500">
+                  Showing {auditHistory.length > 0 ? dashboard.auditHistoryOffset + 1 : 0}–{dashboard.auditHistoryOffset + auditHistory.length} entries
+                </span>
+                <button
+                  type="button"
+                  onClick={() => loadSnapshot({ paginate: { auditHistoryOffset: dashboard.auditHistoryOffset + dashboard.auditHistoryLimit, auditHistoryLimit: dashboard.auditHistoryLimit } })}
+                  disabled={pendingAction !== null || auditHistory.length < dashboard.auditHistoryLimit}
+                  className="inline-flex items-center gap-2 rounded-lg border border-indigo-200 bg-white px-3 py-2 text-sm font-semibold text-indigo-600 transition hover:bg-indigo-50 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Load More
+                </button>
               </div>
             </div>
 

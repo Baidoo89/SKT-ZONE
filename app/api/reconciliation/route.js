@@ -42,12 +42,12 @@ function isTransientDatabaseError(error) {
   return ["ENOTFOUND", "EAI_AGAIN", "ETIMEDOUT", "ECONNRESET", "ECONNREFUSED"].includes(code);
 }
 
-async function readSnapshotWithRetry(pool, attempts = 2) {
+async function readSnapshotWithRetry(pool, opts = {}, attempts = 2) {
   let lastError;
 
   for (let attempt = 0; attempt <= attempts; attempt += 1) {
     try {
-      return await buildSnapshot(pool);
+      return await buildSnapshot(pool, opts);
     } catch (error) {
       lastError = error;
       if (!isTransientDatabaseError(error) || attempt === attempts) {
@@ -59,20 +59,29 @@ async function readSnapshotWithRetry(pool, attempts = 2) {
   throw lastError;
 }
 
-async function buildSnapshot(pool) {
+async function buildSnapshot(pool, opts = {}) {
+  const ledgerLimit = opts.ledgerLimit ?? 20;
+  const ledgerOffset = opts.ledgerOffset ?? 0;
+  const debtLimit = opts.debtLimit ?? 20;
+  const debtOffset = opts.debtOffset ?? 0;
+  const auditHistoryLimit = opts.auditHistoryLimit ?? 10;
+  const auditHistoryOffset = opts.auditHistoryOffset ?? 0;
+
   const [ledgerResult, debtResult, auditResult, auditHistoryResult, summaryResult] = await Promise.all([
     pool.query(
       `select id, entry_time, user_ref, source, amount, processed_by, momo_ref
        from public.reconciliation_ledger
        order by entry_time desc, created_at desc
-       limit 200`
+       limit $1 offset $2`,
+      [ledgerLimit, ledgerOffset]
     ),
     pool.query(
       `select id, user_ref, display_name, debt_amount, status, priority_rank, created_at
        from public.debit_board
        where status in ('open', 'partial')
        order by debt_amount desc, priority_rank desc, created_at asc
-       limit 500`
+       limit $1 offset $2`,
+      [debtLimit, debtOffset]
     ),
     pool.query(
       `select audit_date, total_cash_in, paystack_sync, active_debt_board, match_status, notes, created_at
@@ -84,7 +93,8 @@ async function buildSnapshot(pool) {
       `select id, audit_date, total_cash_in, paystack_sync, active_debt_board, match_status, notes, created_at
        from public.reconciliation_audits
        order by created_at desc
-       limit 50`
+       limit $1 offset $2`,
+      [auditHistoryLimit, auditHistoryOffset]
     ),
     pool.query(
       `select
@@ -135,7 +145,11 @@ async function buildSnapshot(pool) {
 
   return {
     ledgerRows,
+    ledgerOffset: ledgerOffset,
+    ledgerLimit: ledgerLimit,
     debtors,
+    debtOffset: debtOffset,
+    debtLimit: debtLimit,
     latestAudit,
     auditHistory: auditHistoryResult.rows.map((row) => ({
       id: row.id,
@@ -147,6 +161,8 @@ async function buildSnapshot(pool) {
       notes: row.notes,
       createdAt: row.created_at,
     })),
+    auditHistoryOffset: auditHistoryOffset,
+    auditHistoryLimit: auditHistoryLimit,
     totals: {
       cashInToday: toNumber(summaryResult.rows[0]?.cash_in_today),
       paystackSync: toNumber(summaryResult.rows[0]?.paystack_sync),
@@ -176,7 +192,17 @@ export async function GET(request) {
   }
 
   try {
-    const snapshot = await readSnapshotWithRetry(pool);
+    const { searchParams } = new URL(request.url);
+    const opts = {
+      ledgerOffset: Math.max(0, Number(searchParams.get("ledgerOffset")) || 0),
+      ledgerLimit: Math.min(100, Math.max(1, Number(searchParams.get("ledgerLimit")) || 20)),
+      debtOffset: Math.max(0, Number(searchParams.get("debtOffset")) || 0),
+      debtLimit: Math.min(100, Math.max(1, Number(searchParams.get("debtLimit")) || 20)),
+      auditHistoryOffset: Math.max(0, Number(searchParams.get("auditHistoryOffset")) || 0),
+      auditHistoryLimit: Math.min(100, Math.max(1, Number(searchParams.get("auditHistoryLimit")) || 10)),
+    };
+
+    const snapshot = await readSnapshotWithRetry(pool, opts);
     return NextResponse.json({ ok: true, snapshot });
   } catch (error) {
     return jsonError(error instanceof Error ? error.message : "Failed to load dashboard.", 500);
