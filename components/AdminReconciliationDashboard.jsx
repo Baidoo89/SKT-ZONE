@@ -490,9 +490,9 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
-      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <div className="space-y-6">
-          <header className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/60">
+      <div className="mx-auto min-w-0 max-w-7xl px-2 py-2 sm:px-6 sm:py-6 lg:px-8">
+        <div className="min-w-0 space-y-3 sm:space-y-6">
+          <header className="min-w-0 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm shadow-slate-200/60 sm:p-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div className="space-y-2">
                 <div className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-slate-600">
@@ -509,8 +509,8 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
                 </div>
               </div>
 
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm">
+              <div className="min-w-0 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 shadow-sm sm:min-w-52">
                   <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-[0.2em] text-slate-500">
                     <Clock3 className="h-4 w-4 text-slate-400" />
                     Current Time
@@ -518,7 +518,7 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
                   <div className="mt-1 text-sm font-semibold text-slate-900"><ClientClock /></div>
                 </div>
 
-                <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:min-w-70">
+                <div className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm sm:min-w-68">
                   <div className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">
                     Operator: {authState.user || currentOperator}
                   </div>
@@ -666,7 +666,7 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
             </div>
           )}
 
-          <section className="grid gap-4 md:grid-cols-3">
+          <section className="grid gap-3 md:grid-cols-3">
             <MetricCard
               title="Total Cash In Today"
               value={formatCurrency(totalCashInToday)}
@@ -690,7 +690,7 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
             />
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/60">
+          <section className="rounded-3xl border border-slate-200 bg-white p-3 shadow-sm shadow-slate-200/60 sm:p-6">
             <div className="flex flex-col gap-4 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">Live Paystack Feed</h2>
@@ -724,42 +724,46 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
 
             <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200">
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-                  <thead className="bg-slate-50 text-xs uppercase tracking-[0.16em] text-slate-500">
+                <table className="w-full table-fixed divide-y divide-slate-200 text-left text-xs sm:text-sm">
+                  <thead className="sticky top-0 bg-slate-50 text-xs uppercase tracking-[0.16em] text-slate-500">
                     <tr>
-                      <th className="px-4 py-3 font-semibold">Time</th>
-                      <th className="px-4 py-3 font-semibold">Customer</th>
-                      <th className="px-4 py-3 font-semibold">Reference</th>
-                      <th className="px-4 py-3 font-semibold">Amount</th>
-                      <th className="px-4 py-3 font-semibold">Status</th>
+                      <th className="w-24 px-3 py-3 font-semibold sm:w-32 sm:px-4">Time</th>
+                      <th className="w-32 px-3 py-3 font-semibold sm:w-52 sm:px-4">Customer</th>
+                      <th className="w-28 px-3 py-3 font-semibold sm:w-48 sm:px-4">Reference</th>
+                      <th className="w-20 px-3 py-3 font-semibold sm:w-28 sm:px-4">Amount</th>
+                      <th className="w-20 px-3 py-3 font-semibold sm:w-28 sm:px-4">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 bg-white">
                     {!paystackTransactions.length && !paystackFeed.loading ? (
                       <tr>
-                        <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
+                        <td colSpan={5} className="px-3 py-6 text-center text-slate-500 sm:px-4 sm:py-8">
                           No Paystack transactions found yet.
                         </td>
                       </tr>
                     ) : (
                       paystackTransactions.map((transaction) => (
                         <tr key={transaction.id} className="transition hover:bg-slate-50">
-                          <td className="px-4 py-3 text-slate-700">
-                            {transaction.createdAt ? formatDateTime(transaction.createdAt) : "-"}
+                          <td className="px-3 py-3 align-top text-slate-700 sm:px-4">
+                            <div className="truncate font-medium">{transaction.createdAt ? formatDateTime(transaction.createdAt) : "-"}</div>
                           </td>
-                          <td className="px-4 py-3 text-slate-700">
-                            <div className="font-medium text-slate-900">{transaction.customerName}</div>
-                            {transaction.customerEmail ? (
-                              <div className="text-xs text-slate-500">{transaction.customerEmail}</div>
-                            ) : null}
+                          <td className="px-3 py-3 align-top text-slate-700 sm:px-4">
+                            <div className="min-w-0">
+                              <div className="font-medium text-slate-900">{transaction.customerName}</div>
+                              {transaction.customerEmail ? (
+                                <div className="truncate text-[11px] text-slate-500 sm:text-xs">{transaction.customerEmail}</div>
+                              ) : null}
+                            </div>
                           </td>
-                          <td className="px-4 py-3 text-slate-700">{transaction.reference}</td>
-                          <td className="px-4 py-3 font-semibold text-emerald-600">
+                          <td className="px-3 py-3 align-top text-slate-700 sm:px-4">
+                            <div className="max-w-48 truncate font-medium text-slate-900">{transaction.reference}</div>
+                          </td>
+                          <td className="px-3 py-3 align-top whitespace-nowrap font-semibold text-emerald-600 sm:px-4">
                             {formatCurrency(transaction.amount)}
                           </td>
-                          <td className="px-4 py-3 text-slate-700">
+                          <td className="px-3 py-3 align-top text-slate-700 sm:px-4">
                             <span
-                              className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+                              className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${
                                 transaction.status === "success"
                                   ? "bg-emerald-50 text-emerald-700"
                                   : "bg-slate-100 text-slate-700"
@@ -777,9 +781,9 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
             </div>
           </section>
 
-          <section className="grid gap-6 xl:grid-cols-3">
-            <div className="xl:col-span-2 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/60">
-              <div className="flex flex-col gap-4 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
+          <section className="grid min-w-0 gap-3 xl:grid-cols-3 xl:gap-6">
+            <div className="min-w-0 w-full xl:col-span-2 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm shadow-slate-200/60 sm:p-6">
+              <div className="min-w-0 flex flex-col gap-4 border-b border-slate-200 pb-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-lg font-semibold text-slate-900">Internal Settlement Ledger</h2>
                   <p className="mt-1 text-sm text-slate-500">
@@ -792,31 +796,33 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
                 </div>
               </div>
 
-              <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200">
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-                    <thead className="bg-slate-50 text-xs uppercase tracking-[0.16em] text-slate-500">
+              <div className="mt-4 min-w-0 overflow-hidden rounded-2xl border border-slate-200">
+                <div className="min-w-0 overflow-x-auto">
+                  <table className="w-full table-fixed divide-y divide-slate-200 text-left text-xs sm:text-sm">
+                    <thead className="sticky top-0 bg-slate-50 text-xs uppercase tracking-[0.16em] text-slate-500">
                       <tr>
-                        <th className="px-4 py-3 font-semibold">Time</th>
-                        <th className="px-4 py-3 font-semibold">User</th>
-                        <th className="px-4 py-3 font-semibold">Source</th>
-                        <th className="px-4 py-3 font-semibold">Amount</th>
-                        <th className="px-4 py-3 font-semibold">Processed By</th>
+                        <th className="w-24 px-3 py-3 font-semibold sm:w-32 sm:px-4">Time</th>
+                        <th className="w-28 px-3 py-3 font-semibold sm:w-48 sm:px-4">User</th>
+                        <th className="w-28 px-3 py-3 font-semibold sm:w-40 sm:px-4">Source</th>
+                        <th className="w-20 px-3 py-3 font-semibold sm:w-28 sm:px-4">Amount</th>
+                        <th className="w-28 px-3 py-3 font-semibold sm:w-40 sm:px-4">Processed By</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 bg-white">
                       {!ledgerRows.length && !loading ? (
                         <tr>
-                          <td colSpan={5} className="px-4 py-8 text-center text-slate-500">
+                          <td colSpan={5} className="px-3 py-6 text-center text-slate-500 sm:px-4 sm:py-8">
                             No ledger entries yet. Use the top-up form or run a reconciliation action.
                           </td>
                         </tr>
                       ) : (
                         ledgerRows.map((row) => (
                           <tr key={row.id} className="transition hover:bg-slate-50">
-                            <td className="px-4 py-3 font-medium text-slate-700">{row.time}</td>
-                            <td className="px-4 py-3 text-slate-700">{row.user}</td>
-                            <td className="px-4 py-3">
+                            <td className="px-3 py-3 align-top font-medium text-slate-700 sm:px-4">{row.time}</td>
+                            <td className="px-3 py-3 align-top text-slate-700 sm:px-4">
+                              <div className="min-w-0 truncate">{row.user}</div>
+                            </td>
+                            <td className="px-3 py-3 align-top sm:px-4">
                               <span
                                 className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset ${sourceBadgeClass(row.source)}`}
                               >
@@ -824,8 +830,10 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
                                 {row.source}
                               </span>
                             </td>
-                            <td className="px-4 py-3 font-semibold text-emerald-600">{formatCurrency(row.amount)}</td>
-                            <td className="px-4 py-3 text-slate-600">{row.admin}</td>
+                            <td className="px-3 py-3 align-top whitespace-nowrap font-semibold text-emerald-600 sm:px-4">{formatCurrency(row.amount)}</td>
+                            <td className="px-3 py-3 align-top text-slate-600 sm:px-4">
+                              <div className="min-w-0 truncate">{row.admin}</div>
+                            </td>
                           </tr>
                         ))
                       )}
@@ -835,9 +843,9 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
               </div>
             </div>
 
-            <div className="space-y-6">
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/60">
-                <div className="flex items-center gap-3">
+            <div className="min-w-0 space-y-6">
+              <div className="min-w-0 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm shadow-slate-200/60 sm:p-6">
+                <div className="min-w-0 flex items-center gap-3">
                   <div className="rounded-2xl bg-indigo-50 p-3 text-indigo-600">
                     <Wallet className="h-5 w-5" />
                   </div>
@@ -916,8 +924,8 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
                 </form>
               </div>
 
-              <div className="rounded-2xl border border-rose-200 bg-white p-6 shadow-sm shadow-rose-100/70">
-                <div className="flex items-center justify-between gap-3">
+              <div className="min-w-0 rounded-3xl border border-rose-200 bg-white p-3 shadow-sm shadow-rose-100/70 sm:p-6">
+                <div className="min-w-0 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <h2 className="text-lg font-semibold text-slate-900">Admin Debt Board</h2>
                     <p className="mt-1 text-sm text-slate-500">
@@ -941,13 +949,13 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
                 </div>
 
                 <div className="mt-6 space-y-3">
-                  <form className="mb-4 rounded-2xl border border-rose-200 bg-linear-to-br from-rose-50 via-rose-50 to-amber-50 p-4" onSubmit={handleCreateDebt}>
+                  <form className="mb-4 rounded-3xl border border-rose-200 bg-linear-to-br from-rose-50 via-rose-50 to-amber-50 p-4 sm:p-5" onSubmit={handleCreateDebt}>
                     <div className="mb-3">
                       <h3 className="text-sm font-semibold uppercase tracking-[0.16em] text-rose-700">Create Debt Entry</h3>
                       <p className="mt-1 text-xs text-rose-600">Use this when admin manually credits a customer who will pay later.</p>
                     </div>
 
-                    <div className="grid gap-3 md:grid-cols-3">
+                    <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
                       <div>
                         <label className="mb-1 block text-xs font-semibold text-rose-700">User ID / Phone</label>
                         <input
@@ -981,10 +989,10 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
                       </div>
                     </div>
 
-                    <button
+                      <button
                       type="submit"
                       disabled={pendingAction !== null || !actionReady}
-                      className="mt-3 inline-flex w-full sm:w-auto items-center justify-center rounded-xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 disabled:opacity-70"
+                        className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-rose-600 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-rose-700 disabled:opacity-70 sm:w-auto sm:py-2"
                     >
                       Create Debt
                     </button>
@@ -998,21 +1006,21 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
                     dashboard.debtors.map((debtor) => (
                       <div
                         key={debtor.id}
-                        className="rounded-2xl border border-slate-200 p-4 transition hover:border-rose-200 hover:bg-rose-50/40"
+                        className="rounded-3xl border border-slate-200 p-4 transition hover:border-rose-200 hover:bg-rose-50/40"
                       >
-                        <div className="flex items-start justify-between gap-4">
+                        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                           <div>
                             <div className="font-semibold text-slate-900">{debtor.name}</div>
                             <div className="mt-1 text-sm text-slate-500">{debtor.user}</div>
                           </div>
-                          <div className="text-right">
+                          <div className="text-left sm:text-right">
                             <div className="text-sm font-semibold text-rose-600">{formatCurrency(debtor.debt)}</div>
-                            <div className="flex items-center justify-end gap-2">
+                            <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-end sm:gap-2">
                               <button
                                 type="button"
                                 onClick={() => handleClearDebt(debtor.user)}
                                 disabled={pendingAction !== null || !actionReady}
-                                className="mt-1 w-full sm:inline-flex items-center justify-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-indigo-600 transition hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
+                                className="inline-flex items-center justify-center gap-1 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-70"
                               >
                                 {pendingAction === "clearDebt" ? (
                                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -1026,7 +1034,7 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
                                 type="button"
                                 onClick={() => handleSuggestMatches(debtor.user, debtor.id, debtor.debt)}
                                 disabled={pendingAction !== null}
-                                className="mt-1 w-full sm:inline-flex items-center justify-center gap-1 rounded-md px-2 py-1 text-xs font-semibold text-slate-600 transition hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-70"
+                                className="inline-flex items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-70"
                               >
                                 Suggest Matches
                               </button>
@@ -1034,12 +1042,12 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
                           </div>
                         </div>
                         {suggestions[debtor.id] ? (
-                          <div className="mt-3 rounded-lg border border-slate-100 bg-white p-3 text-sm">
+                          <div className="mt-3 rounded-2xl border border-slate-100 bg-white p-3 text-sm">
                             {suggestions[debtor.id].loading ? (
                               <div className="text-slate-500">Searching for matches...</div>
                             ) : suggestions[debtor.id].matches.length ? (
                               suggestions[debtor.id].matches.map((m) => (
-                                <div key={m.id} className="flex items-center justify-between gap-2 border-b border-slate-100 py-2">
+                                <div key={m.id} className="flex flex-col gap-3 border-b border-slate-100 py-2 sm:flex-row sm:items-center sm:justify-between">
                                   <div>
                                     <div className="font-medium text-slate-900">{m.momoRef || m.user}</div>
                                     <div className="text-xs text-slate-500">{formatCurrency(m.amount)} • {m.user}</div>
@@ -1048,7 +1056,7 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
                                     <button
                                       type="button"
                                       onClick={() => handleClearDebt(debtor.user, m.amount, m.momoRef)}
-                                      className="w-full sm:inline-flex items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white"
+                                      className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 px-3 py-2 text-xs font-semibold text-white sm:w-auto"
                                     >
                                       Apply Match
                                     </button>
@@ -1068,8 +1076,8 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
             </div>
           </section>
 
-          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/60">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <section className="min-w-0 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm shadow-slate-200/60 sm:p-6">
+            <div className="min-w-0 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-slate-900">Profit &amp; Audit Status</h2>
                 <p className="mt-1 text-sm text-slate-500">
@@ -1088,7 +1096,7 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
               </div>
             </div>
 
-            <div className="mt-5">
+              <div className="mt-5 min-w-0">
               <div className="mb-2 flex items-center justify-between text-sm text-slate-500">
                 <span>Audit confidence</span>
                 <span>{matchProgress}%</span>
@@ -1099,7 +1107,7 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
                   style={{ width: `${matchProgress}%` }}
                 />
               </div>
-              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 <AuditStat label="Cash In Today" value={formatCurrency(totalCashInToday)} />
                 <AuditStat label="Paystack Sync" value={`${paystackSync.toFixed(1)}%`} />
                 <AuditStat label="Open Debtors" value={String(totalDebtors)} />
@@ -1107,38 +1115,38 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
               </div>
             </div>
 
-            <div className="mt-5 rounded-2xl border border-slate-200">
+              <div className="mt-5 min-w-0 rounded-2xl border border-slate-200">
               <div className="border-b border-slate-200 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700">
                 Recent Audit Runs
               </div>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
+              <div className="min-w-0 overflow-x-auto">
+                <table className="w-full table-fixed divide-y divide-slate-200 text-left text-xs sm:text-sm">
                   <thead className="bg-white text-xs uppercase tracking-[0.16em] text-slate-500">
                     <tr>
-                      <th className="px-4 py-3 font-semibold">Date</th>
-                      <th className="px-4 py-3 font-semibold">Cash In</th>
-                      <th className="px-4 py-3 font-semibold">Sync</th>
-                      <th className="px-4 py-3 font-semibold">Debtors</th>
-                      <th className="px-4 py-3 font-semibold">Status</th>
+                      <th className="w-28 px-3 py-3 font-semibold sm:w-48 sm:px-4">Date</th>
+                      <th className="w-24 px-3 py-3 font-semibold sm:w-32 sm:px-4">Cash In</th>
+                      <th className="w-20 px-3 py-3 font-semibold sm:w-24 sm:px-4">Sync</th>
+                      <th className="w-20 px-3 py-3 font-semibold sm:w-24 sm:px-4">Debtors</th>
+                      <th className="w-20 px-3 py-3 font-semibold sm:w-28 sm:px-4">Status</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 bg-white">
                     {auditHistory.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="px-4 py-6 text-center text-slate-500">
+                        <td colSpan={5} className="px-3 py-6 text-center text-slate-500 sm:px-4 sm:py-8">
                           No audit history available yet.
                         </td>
                       </tr>
                     ) : (
                       auditHistory.map((audit) => (
-                        <tr key={audit.id}>
-                          <td className="px-4 py-3 text-slate-700">{formatDateTime(audit.createdAt)}</td>
-                          <td className="px-4 py-3 text-slate-700">{formatCurrency(audit.totalCashIn)}</td>
-                          <td className="px-4 py-3 text-slate-700">{audit.paystackSync.toFixed(1)}%</td>
-                          <td className="px-4 py-3 text-slate-700">{audit.activeDebtBoard}</td>
-                          <td className="px-4 py-3">
+                        <tr key={audit.id} className="transition hover:bg-slate-50">
+                          <td className="px-3 py-3 align-top text-slate-700 sm:px-4">{formatDateTime(audit.createdAt)}</td>
+                          <td className="px-3 py-3 align-top whitespace-nowrap text-slate-700 sm:px-4">{formatCurrency(audit.totalCashIn)}</td>
+                          <td className="px-3 py-3 align-top whitespace-nowrap text-slate-700 sm:px-4">{audit.paystackSync.toFixed(1)}%</td>
+                          <td className="px-3 py-3 align-top whitespace-nowrap text-slate-700 sm:px-4">{audit.activeDebtBoard}</td>
+                          <td className="px-3 py-3 align-top sm:px-4">
                             <span
-                              className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${
+                              className={`inline-flex whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold ${
                                 audit.matchStatus === "MATCH"
                                   ? "bg-emerald-50 text-emerald-700"
                                   : "bg-slate-100 text-slate-700"
@@ -1155,13 +1163,13 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
               </div>
             </div>
 
-            <div className="mt-5 flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-500">
+            <div className="mt-5 flex flex-col gap-3 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between">
               <span>{dashboard.fetchedAt ? `Last synced ${formatDateTime(dashboard.fetchedAt)}` : "Waiting for first snapshot"}</span>
               <button
                 type="button"
                 onClick={() => loadSnapshot()}
                 disabled={pendingAction !== null}
-                className="inline-flex items-center gap-2 font-semibold text-indigo-600 transition hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-indigo-200 bg-white px-3 py-2 font-semibold text-indigo-600 transition hover:bg-indigo-50 hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-70"
               >
                 {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                 Refresh Data
