@@ -505,10 +505,14 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
   const displayError = isBootstrapping ? "" : error;
   const displayNotice = isBootstrapping ? "" : notice;
 
+  const requireAuthView = sessionAuthEnabled && !authState.authenticated && !adminKey?.trim();
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <div className="mx-auto min-w-0 max-w-7xl px-2 py-2 sm:px-6 sm:py-6 lg:px-8">
-        <div className="min-w-0 space-y-3 sm:space-y-6">
+    <div className="min-h-screen bg-slate-50 text-slate-900 relative">
+      <div className="relative">
+        <div className={requireAuthView ? "filter blur-sm pointer-events-none select-none" : ""}>
+          <div className="mx-auto min-w-0 max-w-7xl px-2 py-2 sm:px-6 sm:py-6 lg:px-8">
+            <div className="min-w-0 space-y-3 sm:space-y-6">
           <header className="min-w-0 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm shadow-slate-200/60 sm:p-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div className="space-y-2">
@@ -1193,6 +1197,25 @@ export default function AdminReconciliationDashboard({ initialSessionAuthEnabled
               </button>
             </div>
           </section>
+        </div>
+        {requireAuthView ? (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+            <div className="rounded-lg bg-white p-6 shadow-xl text-center max-w-sm mx-4">
+              <h3 className="text-lg font-semibold text-slate-900">Admin sign-in required</h3>
+              <p className="mt-2 text-sm text-slate-600">Sign in to view reconciliation data.</p>
+              <div className="mt-4">
+                <button
+                  type="button"
+                  onClick={() => (window.location.href = '/api/auth/login')}
+                  className="inline-flex items-center rounded-md bg-indigo-600 px-4 py-2 text-white"
+                >
+                  Sign in
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+        </div>
         </div>
       </div>
     </div>

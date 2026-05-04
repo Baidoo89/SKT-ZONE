@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { authorizeActionRequest, isSessionAuthConfigured } from "../../../../lib/admin-auth.js";
 
 export const runtime = "nodejs";
 
@@ -53,6 +54,15 @@ export async function GET(request) {
       transactions: [],
       fetchedAt: new Date().toISOString(),
     });
+  }
+
+  // Require admin auth when session auth or action key is configured
+  const requireAuth = isSessionAuthConfigured() || Boolean(process.env.ADMIN_ACTION_KEY);
+  if (requireAuth) {
+    const authError = authorizeActionRequest(request);
+    if (authError) {
+      return NextResponse.json({ ok: false, error: "Login required to view Paystack feed." }, { status: 401 });
+    }
   }
 
   const url = new URL("/transaction", baseUrl);
